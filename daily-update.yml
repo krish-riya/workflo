@@ -1,0 +1,40 @@
+name: Daily Repository Update
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Runs at 00:00 UTC every day
+
+jobs:
+  update-repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "krishnapriya.rajasubramani@straive.com"
+
+      - name: Create update file
+        run: |
+          mkdir -p logs
+          echo "Repository updated at $(date -u +'%Y-%m-%dT%H:%M:%SZ')" > logs/daily-update-$(date -u +'%Y-%m-%d').log
+
+      - name: Commit changes
+        run: |
+          git add logs/
+          git commit -m "Automated daily update [skip ci]"
+          git push
+
+      - name: Verify commit
+        run: |
+          echo "Last commit hash: $(git rev-parse HEAD)"
+          echo "Last commit date: $(git log -1 --format=%cd --date=iso)"
